@@ -88,7 +88,7 @@ class CSP(ABC):
             :return: a complete and valid assignment if one exists, None otherwise.
         """
         if self.isComplete(assignment): return assignment
-        var = self._findUnassignedValue(assignment)
+        var = self.selectVariable(assignment, domains)
         for value in domains.get(var):
             assignment[var] = value
             if self.isValid(assignment):
@@ -110,7 +110,7 @@ class CSP(ABC):
             :return: a complete and valid assignment if one exists, None otherwise.
         """
         if self.isComplete(assignment): return assignment
-        var = self._findUnassignedValue(assignment)
+        var = self.selectVariable(assignment, domains)
         for var_value in domains.get(var):
             assignment[var] = var_value
             result = self._solveForwardChecking(assignment, self.forwardChecking(assignment, domains, var))
@@ -141,13 +141,21 @@ class CSP(ABC):
 
     def selectVariable(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Variable:
         """ Implement a strategy to select the next variable to assign. """
-        return random.choice(list(self.remainingVariables(assignment)))
-        # TODO: Implement CSP::selectVariable (problem 2)
+        var_to_return = None
+        smallest_domain = float("inf")
+        for var in domains:
+            if assignment.get(var) is not None: continue
+            if len(domains.get(var)) < smallest_domain:
+                smallest_domain, var_to_return = len(domains.get(var)), var
+        domains[var_to_return] = set(self.orderDomain(assignment, domains, var_to_return))
+        return var_to_return
+
+        # return random.choice(list(self.remainingVariables(assignment)))
 
     def orderDomain(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]], var: Variable) -> List[Value]:
         """ Implement a smart ordering of the domain values. """
+
         return list(domains[var])
-        # TODO: Implement CSP::orderDomain (problem 2)
 
     def solveAC3(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking and AC3.
