@@ -93,7 +93,8 @@ class CSP(ABC):
             assignment[var] = value
             if self.isValid(assignment):
                 result = self._solveBruteForce(assignment, domains)
-                if self.isComplete(result): return result
+                if result is not None: return result
+        assignment.pop(var)
 
     def solveForwardChecking(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking.
