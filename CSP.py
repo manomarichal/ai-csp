@@ -94,13 +94,13 @@ class CSP(ABC):
             if self.isValid(assignment):
                 result = self._solveBruteForce(assignment, domains)
                 if result is not None: return result
-        assignment.pop(var)
+        if assignment.get(var) is not None: assignment.pop(var)
 
     def solveForwardChecking(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking.
             Initializes the domains and calls `CSP::_solveForwardChecking`. """
         domains = domainsFromAssignment(initialAssignment, self.variables)
-        domains = self.forwardChecking(domains, initialAssignment)
+        domains = self.forwardChecking(initialAssignment, domains)
         return self._solveForwardChecking(initialAssignment, domains)
 
     @monitor
@@ -109,8 +109,13 @@ class CSP(ABC):
             Use `CSP::forwardChecking` and you should no longer need to check if an assignment is valid.
             :return: a complete and valid assignment if one exists, None otherwise.
         """
-        # TODO: Implement CSP::_solveForwardChecking (problem 2)
-        pass
+        if self.isComplete(assignment): return assignment
+        var = self._findUnassignedValue(assignment)
+        for var_value in domains.get(var):
+            assignment[var] = var_value
+            result = self._solveForwardChecking(assignment, self.forwardChecking(assignment, domains, var))
+            if result is not None: return result
+        if assignment.get(var) is not None: assignment.pop(var)
 
     def forwardChecking(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]], variable: Optional[Variable] = None) -> Dict[Variable, Set[Value]]:
         """ Implement the forward checking algorithm from the theory lectures.
@@ -120,8 +125,19 @@ class CSP(ABC):
         :param variable: If not None, the variable that was just assigned (only need to check changes).
         :return: the new domains after enforcing all constraints.
         """
-        # TODO: Implement CSP::forwardChecking (problem 2)
-        pass
+        # TODO mooiere manier vinden voor als var niet none is
+        new_domains = domains.copy()
+        if variable is None: variables_to_check = self.variables
+        else: variables_to_check = [variable]
+        for var in variables_to_check:
+            for neighbor in self.neighbors(var):
+                if assignment.get(var) is None or assignment.get(neighbor) is not None: continue
+                valid_values = []
+                for neighbor_value in domains.get(neighbor):
+                    if self.isValidPairwise(var, assignment.get(var), neighbor, neighbor_value):
+                        valid_values.append(neighbor_value)
+                new_domains[neighbor] = set(valid_values)
+        return new_domains
 
     def selectVariable(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Variable:
         """ Implement a strategy to select the next variable to assign. """
