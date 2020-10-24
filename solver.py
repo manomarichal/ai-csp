@@ -42,8 +42,8 @@ def solve(csp, method: Method, initialAssignment=dict()):
 
     if assignment:
         s = csp.assignmentToStr(assignment)
-        # tqdm.write("\nSolution:")
-        # tqdm.write(s)
+        tqdm.write("\nSolution:")
+        tqdm.write(s)
     else:
         tqdm.write("No solution found")
 
@@ -60,7 +60,6 @@ def queens(n: int = 5, method: Method = Method.bf):
     """ Solve the N Queens problem as a CSP. """
     csp = NQueens(n=n)
     solve(csp, method)
-
 
 if __name__ == "__main__":
     app()
