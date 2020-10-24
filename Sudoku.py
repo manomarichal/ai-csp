@@ -2,7 +2,6 @@ from typing import Set, Dict
 
 from CSP import CSP, Variable, Value
 
-
 class Sudoku(CSP):
     def __init__(self):
         super().__init__()
@@ -11,13 +10,15 @@ class Sudoku(CSP):
     @property
     def variables(self) -> Set['Cell']:
         """ Return the set of variables in this CSP. """
-        # TODO: Implement Sudoku::variables (problem 4)
-        pass
+        variables = []
+        for x in range(1, 10, 1):
+            for y in range(1, 10, 1):
+                variables.append(str(x) + str(y))
+        return variables
 
     def getCell(self, x: int, y: int) -> 'Cell':
-        """ Get the  variable corresponding to the cell on (x, y) """
-        # TODO: Implement Sudoku::getCell (problem 4)
-        pass
+        """ Get the variable corresponding to the cell on (x, y) """
+        return str(x) + str(y)
 
     def neighbors(self, var: 'Cell') -> Set['Cell']:
         """ Return all variables related to var by some constraint. """

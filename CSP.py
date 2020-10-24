@@ -1,7 +1,7 @@
 import random
 from typing import Set, Dict, List, TypeVar, Optional
 from abc import ABC, abstractmethod
-
+from queue import Queue
 from util import monitor
 
 
@@ -17,6 +17,7 @@ class Variable(ABC):
 
 
 class CSP(ABC):
+    counter = 0
     @property
     @abstractmethod
     def variables(self) -> Set[Variable]:
@@ -87,6 +88,7 @@ class CSP(ABC):
             Use `CSP::isComplete`, `CSP::isValid`, `CSP::selectVariable` and `CSP::orderDomain`.
             :return: a complete and valid assignment if one exists, None otherwise.
         """
+        self.counter += 1
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
         for value in domains.get(var):
@@ -109,6 +111,7 @@ class CSP(ABC):
             Use `CSP::forwardChecking` and you should no longer need to check if an assignment is valid.
             :return: a complete and valid assignment if one exists, None otherwise.
         """
+        self.counter += 1
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
         for var_value in domains.get(var):
@@ -150,19 +153,17 @@ class CSP(ABC):
         domains[var_to_return] = set(self.orderDomain(assignment, domains, var_to_return))
         return var_to_return
 
-        # return random.choice(list(self.remainingVariables(assignment)))
-
     def orderDomain(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]], var: Variable) -> List[Value]:
         """ Implement a smart ordering of the domain values. """
-
+        #TODO
         return list(domains[var])
 
     def solveAC3(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking and AC3.
             Initializes domains and calls `CSP::_solveAC3`. """
         domains = domainsFromAssignment(initialAssignment, self.variables)
-        domains = self.forwardChecking(domains, initialAssignment)
-        return self._solveAC3(initialAssignment, domains)
+        domains = self.ac3(initialAssignment, domains)
+        return self._solveForwardChecking(initialAssignment, self.forwardChecking(initialAssignment, domains))
 
     @monitor
     def _solveAC3(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Optional[Dict[Variable, Value]]:
@@ -171,15 +172,45 @@ class CSP(ABC):
             Use `CSP::ac3`.
             :return: a complete and valid assignment if one exists, None otherwise.
         """
-        # TODO: Implement CSP::_solveAC3 (problem 3)
-        pass
+        self.counter += 1
+        if self.isComplete(assignment): return assignment
+        var = self.selectVariable(assignment, domains)
+        for var_value in domains.get(var):
+            assignment[var] = var_value
+            result = self._solveAC3(assignment, self.forwardChecking(assignment, domains))
+            if result is not None: return result
+        if assignment.get(var) is not None: assignment.pop(var)
 
     def ac3(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Dict[Variable, Set[Value]]:
         """ Implement the AC3 algorithm from the theory lectures.
         :return: the new domains ensuring arc consistency.
         """
-        # TODO: Implement CSP::ac3 (problem 3)
-        pass
+        # store all arcs in a queue
+        arc_queue = []
+        for variable in self.variables:
+            for neighbor in self.neighbors(variable):
+                arc_queue.append((variable, neighbor))
+
+        while len(arc_queue) > 0:
+            tail, head = arc_queue.pop(0)
+            values_removed = False
+
+            # remove inconsistent values
+            for v in domains.get(tail).copy():
+                valid = False
+                for w in domains.get(head):
+                    if self.isValidPairwise(tail, v, head, w):
+                        valid = True
+                if not valid:
+                    domains.get(tail).remove(v)
+                    values_removed = True
+
+            # add arcs if values were removed
+            if values_removed:
+                for new_tail in self.neighbors(tail):
+                    if not (assignment.get(new_tail) or (new_tail, tail) in arc_queue) is None:
+                        arc_queue.append((new_tail, tail))
+        return domains
 
 
 def domainsFromAssignment(assignment: Dict[Variable, Value], variables: Set[Variable]) -> Dict[Variable, Set[Value]]:

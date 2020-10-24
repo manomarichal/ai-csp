@@ -20,22 +20,30 @@ app = Typer()
 
 
 def solve(csp, method: Method, initialAssignment=dict()):
+    output_file = open("/home/mano/PycharmProjects/csp/results_temp.txt", "w")
+    check = True
     if method == Method.bf:
-        print("Solving with brute force")
+        # print("Solving with brute force")
         assignment = csp.solveBruteForce(initialAssignment)
     elif method == Method.fc:
-        print("Solving with forward checking")
+        # print("Solving with forward checking")
         assignment = csp.solveForwardChecking(initialAssignment)
     elif method == Method.ac3:
-        print("Solving with forward checking and ac3")
+        # print("Solving with forward checking and ac3")
         assignment = csp.solveAC3(initialAssignment)
+    else:
+        check = False
+
+    if check:
+        output_file.write(str(csp.counter) + ' ')
+        output_file.close()
     else:
         raise RuntimeError(f"Method '{method}' not found.")
 
     if assignment:
         s = csp.assignmentToStr(assignment)
-        tqdm.write("\nSolution:")
-        tqdm.write(s)
+        # tqdm.write("\nSolution:")
+        # tqdm.write(s)
     else:
         tqdm.write("No solution found")
 
