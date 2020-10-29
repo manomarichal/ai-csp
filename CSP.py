@@ -143,19 +143,7 @@ class CSP(ABC):
 
     def selectVariable(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Variable:
         """ Implement a strategy to select the next variable to assign. """
-        # var_to_return = None
-        # min_legal_val = float("inf")
-        # for var in domains:
-        #     if assignment.get(var) is not None: continue
-        #     legal_val_count = 0
-        #     for value in domains.get(var):
-        #         assignment_temp = assignment.copy()
-        #         assignment_temp[var] = value
-        #         if self.isValid(assignment_temp):
-        #             legal_val_count += 1
-        #     if legal_val_count < min_legal_val:
-        #         min_legal_val, var_to_return = legal_val_count, var
-        # return var_to_return
+        return random.choice(list(self.remainingVariables(assignment)))
         var_to_return = None
         smallest_domain = float("inf")
         for var in domains:
@@ -180,8 +168,8 @@ class CSP(ABC):
             amount_var_removed[value] = difference
 
         sort = sorted(amount_var_removed.items(), key=lambda x: x[1], reverse=False)
-        return [tup[0] for tup in sort]
-        # return list(domains[var])
+        # return [tup[0] for tup in sort]
+        return list(domains[var])
 
     def solveAC3(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking and AC3.
