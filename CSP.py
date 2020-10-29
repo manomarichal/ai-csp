@@ -154,20 +154,20 @@ class CSP(ABC):
 
     def orderDomain(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]], var: Variable) -> List[Value]:
         """ Implement a smart ordering of the domain values. """
-        amount_var_removed = dict()
-        org_size = 0
+        amount_val_removed = dict() # how many values were removed from domains for each value in the domain of var
+        org_size = 0 # how many values are currently in all the domains
         for domain in domains.values():
             org_size += len(domain)
         for value in domains.get(var):
             temp_assignment = assignment.copy()
             temp_assignment[var] = value
-            new_domains = self.forwardChecking(temp_assignment, domains, var)
             difference = org_size
-            for domain in new_domains.values():
+            for domain in self.forwardChecking(temp_assignment, domains, var).values():
                 difference -= len(domain)
-            amount_var_removed[value] = difference
+            amount_val_removed[value] = difference
 
-        sort = sorted(amount_var_removed.items(), key=lambda x: x[1], reverse=False)
+        # sort the dictionary by values, we want the value with the lowest difference first
+        sort = sorted(amount_val_removed.items(), key=lambda x: x[1], reverse=False)
         return [tup[0] for tup in sort]
         # return list(domains[var])
 
