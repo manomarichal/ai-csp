@@ -90,12 +90,12 @@ class CSP(ABC):
         self.counter += 1
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
-        for value in domains.get(var):
-            assignment[var] = value
+        for value in self.orderDomain(assignment, domains, var):
             if self.isValid(assignment):
+                assignment[var] = value
                 result = self._solveBruteForce(assignment, domains)
                 if result is not None: return result
-        if assignment.get(var) is not None: assignment.pop(var)
+                assignment.pop(var)
 
     def solveForwardChecking(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking.
@@ -143,26 +143,51 @@ class CSP(ABC):
 
     def selectVariable(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Variable:
         """ Implement a strategy to select the next variable to assign. """
+        # var_to_return = None
+        # min_legal_val = float("inf")
+        # for var in domains:
+        #     if assignment.get(var) is not None: continue
+        #     legal_val_count = 0
+        #     for value in domains.get(var):
+        #         assignment_temp = assignment.copy()
+        #         assignment_temp[var] = value
+        #         if self.isValid(assignment_temp):
+        #             legal_val_count += 1
+        #     if legal_val_count < min_legal_val:
+        #         min_legal_val, var_to_return = legal_val_count, var
+        # return var_to_return
         var_to_return = None
         smallest_domain = float("inf")
         for var in domains:
             if assignment.get(var) is not None: continue
             if len(domains.get(var)) < smallest_domain:
                 smallest_domain, var_to_return = len(domains.get(var)), var
-        domains[var_to_return] = set(self.orderDomain(assignment, domains, var_to_return))
         return var_to_return
 
     def orderDomain(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]], var: Variable) -> List[Value]:
         """ Implement a smart ordering of the domain values. """
-        #TODO
-        return list(domains[var])
+        amount_var_removed = dict()
+        org_size = 0
+        for domain in domains.values():
+            org_size += len(domain)
+        for value in domains.get(var):
+            temp_assignment = assignment.copy()
+            temp_assignment[var] = value
+            new_domains = self.forwardChecking(temp_assignment, domains, var)
+            difference = org_size
+            for domain in new_domains.values():
+                difference -= len(domain)
+            amount_var_removed[value] = difference
+
+        sort = sorted(amount_var_removed.items(), key=lambda x: x[1], reverse=False)
+        return [tup[0] for tup in sort]
+        # return list(domains[var])
 
     def solveAC3(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking and AC3.
             Initializes domains and calls `CSP::_solveAC3`. """
         domains = domainsFromAssignment(initialAssignment, self.variables)
-        domains = self.ac3(initialAssignment, domains)
-        return self._solveForwardChecking(initialAssignment, self.forwardChecking(initialAssignment, domains))
+        return self._solveAC3(initialAssignment, self.forwardChecking(initialAssignment, self.ac3(initialAssignment, domains)))
 
     @monitor
     def _solveAC3(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Optional[Dict[Variable, Value]]:
@@ -176,7 +201,7 @@ class CSP(ABC):
         var = self.selectVariable(assignment, domains)
         for var_value in domains.get(var):
             assignment[var] = var_value
-            result = self._solveAC3(assignment, self.forwardChecking(assignment, domains))
+            result = self._solveAC3(assignment, self.ac3(assignment, self.forwardChecking(assignment, domains)))
             if result is not None: return result
         if assignment.get(var) is not None: assignment.pop(var)
 
@@ -188,7 +213,8 @@ class CSP(ABC):
         arc_queue = []
         for variable in self.variables:
             for neighbor in self.neighbors(variable):
-                arc_queue.append((variable, neighbor))
+                if assignment.get(variable) is None and assignment.get(neighbor) is None:
+                    arc_queue.append((variable, neighbor))
 
         while len(arc_queue) > 0:
             tail, head = arc_queue.pop(0)
