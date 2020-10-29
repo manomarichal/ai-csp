@@ -113,7 +113,7 @@ class CSP(ABC):
         self.counter += 1
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
-        for var_value in domains.get(var):
+        for var_value in self.orderDomain(assignment, domains, var):
             assignment[var] = var_value
             result = self._solveForwardChecking(assignment, self.forwardChecking(assignment, domains, var))
             if result is not None: return result
@@ -143,7 +143,7 @@ class CSP(ABC):
 
     def selectVariable(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Variable:
         """ Implement a strategy to select the next variable to assign. """
-        return random.choice(list(self.remainingVariables(assignment)))
+        # return random.choice(list(self.remainingVariables(assignment)))
         var_to_return = None
         smallest_domain = float("inf")
         for var in domains:
@@ -168,8 +168,8 @@ class CSP(ABC):
             amount_var_removed[value] = difference
 
         sort = sorted(amount_var_removed.items(), key=lambda x: x[1], reverse=False)
-        # return [tup[0] for tup in sort]
-        return list(domains[var])
+        return [tup[0] for tup in sort]
+        # return list(domains[var])
 
     def solveAC3(self, initialAssignment: Dict[Variable, Value] = dict()) -> Optional[Dict[Variable, Value]]:
         """ Called to solve this CSP with forward checking and AC3.
@@ -187,7 +187,7 @@ class CSP(ABC):
         self.counter += 1
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
-        for var_value in domains.get(var):
+        for var_value in self.orderDomain(assignment, domains, var):
             assignment[var] = var_value
             result = self._solveAC3(assignment, self.ac3(assignment, self.forwardChecking(assignment, domains)))
             if result is not None: return result

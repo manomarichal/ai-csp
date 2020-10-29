@@ -1,12 +1,14 @@
 import os
 import numpy
 import matplotlib.pyplot as plt
-index = 0
-count = 1000
+index = 4
+count = 50
 output_file = open("/home/mano/PycharmProjects/csp/results.txt", "w")
 
 commands = ["python3 solver.py queens --n 10",
+            "python3 solver.py queens --method fc --n 10",
             "python3 solver.py queens --method fc --n 30",
+            "python3 solver.py queens --method fc --n 50",
             "python3 solver.py queens --method ac3 --n 30",
             "python3 solver.py queens --method ac3 --n 50",
             ]
@@ -20,13 +22,16 @@ for i in range(0, count, 1):
     value = int(input_file.read())
     values.append(value)
     total += value
+    print(i)
 
+average = numpy.average(values)
+std = numpy.std(values)
 output_file.write("=========")
 output_file.write("\ncommand: " + commands[index])
 output_file.write("\ncount: " + str(count))
 output_file.write("\n=========")
-output_file.write("\naverage: " + str(numpy.average(values)))
-output_file.write("\nstandard deviation: " + str(numpy.std(values)))
+output_file.write("\naverage: " + str(average))
+output_file.write("\nstandard deviation: " + str(std))
 output_file.write("\n=========")
 output_file.close()
 
@@ -50,7 +55,7 @@ margin = m/plt.gcf().get_size_inches()[0]
 
 plt.gcf().subplots_adjust(left=margin, right=1.-margin)
 plt.gcf().set_size_inches(s, plt.gcf().get_size_inches()[1])
-
+plt.text(int(len(help_set)/2), max(counts), 'μ = ' + str(average) + '\nσ = ' + str(round(float(std), 2)), ha='center', va='top', wrap=True)
 plt.ylabel('')
-plt.title('Amount of calls')
+plt.title('Amount of calls for\n' + commands[index] + ' \ncount = ' + str(count))
 plt.show()
