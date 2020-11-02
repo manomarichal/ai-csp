@@ -1,0 +1,10 @@
+=========
+command: python3 solver.py queens --method fc --n 50
+count: 20
+=========
+average: 130.95
+standard deviation: 17.65354072133973
+=========
+ results
+54: 1
+135: 19
