@@ -1,8 +1,8 @@
 import os
 import numpy
 import matplotlib.pyplot as plt
-index = 4
-count = 50
+index = 5
+count = 5
 output_file = open("/home/mano/PycharmProjects/csp/results.txt", "w")
 
 commands = ["python3 solver.py queens --n 10",
@@ -33,11 +33,12 @@ output_file.write("\n=========")
 output_file.write("\naverage: " + str(average))
 output_file.write("\nstandard deviation: " + str(std))
 output_file.write("\n=========")
-output_file.close()
+output_file.write("\n results")
 
 help_set = sorted(list(set(values)))
 counts = []
 for val in help_set:
+    output_file.write("\n" + str(val) + ': ' + str(values.count(val)))
     counts.append(values.count(val))
 
 y_pos = numpy.arange(len(help_set))
@@ -58,4 +59,5 @@ plt.gcf().set_size_inches(s, plt.gcf().get_size_inches()[1])
 plt.text(int(len(help_set)/2), max(counts), 'μ = ' + str(average) + '\nσ = ' + str(round(float(std), 2)), ha='center', va='top', wrap=True)
 plt.ylabel('')
 plt.title('Amount of calls for\n' + commands[index] + ' \ncount = ' + str(count))
+output_file.close()
 plt.show()

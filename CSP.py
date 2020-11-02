@@ -146,7 +146,7 @@ class CSP(ABC):
         # return random.choice(list(self.remainingVariables(assignment)))
         var_to_return = None
         smallest_domain = float("inf")
-        for var in domains:
+        for var in self.variables:
             if assignment.get(var) is not None: continue
             if len(domains.get(var)) < smallest_domain:
                 smallest_domain, var_to_return = len(domains.get(var)), var
