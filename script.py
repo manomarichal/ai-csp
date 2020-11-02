@@ -1,7 +1,7 @@
 import os
 import numpy
 import matplotlib.pyplot as plt
-index = 1
+index = 3
 count = 20
 output_file = open("/home/mano/PycharmProjects/csp/results.txt", "w")
 

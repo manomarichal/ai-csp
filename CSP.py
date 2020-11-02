@@ -175,7 +175,7 @@ class CSP(ABC):
         """ Called to solve this CSP with forward checking and AC3.
             Initializes domains and calls `CSP::_solveAC3`. """
         domains = domainsFromAssignment(initialAssignment, self.variables)
-        return self._solveAC3(initialAssignment, self.forwardChecking(initialAssignment, self.ac3(initialAssignment, domains)))
+        return self._solveAC3(initialAssignment, self.ac3(initialAssignment, domains))
 
     @monitor
     def _solveAC3(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Optional[Dict[Variable, Value]]:
@@ -189,7 +189,7 @@ class CSP(ABC):
         var = self.selectVariable(assignment, domains)
         for var_value in self.orderDomain(assignment, domains, var):
             assignment[var] = var_value
-            result = self._solveAC3(assignment, self.ac3(assignment, self.forwardChecking(assignment, domains)))
+            result = self._solveAC3(assignment, self.ac3(assignment, self.forwardChecking(assignment, domains, var)))
             if result is not None: return result
         if assignment.get(var) is not None: assignment.pop(var)
 
@@ -221,7 +221,7 @@ class CSP(ABC):
             # add arcs if values were removed
             if values_removed:
                 for new_tail in self.neighbors(tail):
-                    if not (assignment.get(new_tail) or (new_tail, tail) in arc_queue) is None:
+                    if assignment.get(new_tail) is None and not (new_tail, tail) in arc_queue:
                         arc_queue.append((new_tail, tail))
         return domains
 
