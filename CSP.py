@@ -133,10 +133,13 @@ class CSP(ABC):
         else: variables_to_check = [variable]
         for var in variables_to_check:
             for neighbor in self.neighbors(var):
-                if assignment.get(var) is None or assignment.get(neighbor) is not None: continue
+                if assignment.get(var) is None or assignment.get(neighbor) is not None:
+                    continue
+                temp_assignment = dict(assignment)
                 valid_values = []
                 for neighbor_value in domains.get(neighbor):
-                    if self.isValidPairwise(var, assignment.get(var), neighbor, neighbor_value):
+                    temp_assignment[neighbor] = neighbor_value
+                    if self.isValid(temp_assignment):
                         valid_values.append(neighbor_value)
                 new_domains[neighbor] = set(valid_values)
         return new_domains

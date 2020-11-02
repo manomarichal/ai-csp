@@ -85,7 +85,7 @@ class Cell(Variable):
         return set(range(9))
 
     def __repr__(self):
-        return str(self.row) + '/' + str(self.col)
+        return str(self.row) + '/' + str(self.col) + '/' + str(self.square)
 
     def isNeighborOf(self, cell:'Cell'):
         return self.square == cell.square or self.row == cell.row or self.col == cell.col

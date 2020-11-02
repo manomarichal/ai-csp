@@ -41,6 +41,7 @@ def solve(csp, method: Method, initialAssignment=dict()):
         raise RuntimeError(f"Method '{method}' not found.")
 
     if assignment:
+        print(csp.isValid(assignment))
         s = csp.assignmentToStr(assignment)
         tqdm.write("\nSolution:")
         tqdm.write(s)
