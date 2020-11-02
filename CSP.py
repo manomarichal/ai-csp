@@ -91,7 +91,9 @@ class CSP(ABC):
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
         for value in self.orderDomain(assignment, domains, var):
-            if self.isValid(assignment):
+            test_assignment = dict(assignment)
+            test_assignment[var] = value
+            if self.isValid(test_assignment):
                 assignment[var] = value
                 result = self._solveBruteForce(assignment, domains)
                 if result is not None: return result
@@ -114,10 +116,13 @@ class CSP(ABC):
         if self.isComplete(assignment): return assignment
         var = self.selectVariable(assignment, domains)
         for var_value in self.orderDomain(assignment, domains, var):
-            assignment[var] = var_value
-            result = self._solveForwardChecking(assignment, self.forwardChecking(assignment, domains, var))
-            if result is not None: return result
-        if assignment.get(var) is not None: assignment.pop(var)
+            test_assignment = dict(assignment)
+            test_assignment[var] = var_value
+            if self.isValid(test_assignment):
+                assignment[var] = var_value
+                result = self._solveForwardChecking(assignment, self.forwardChecking(assignment, domains, var))
+                if result is not None: return result
+                assignment.pop(var)
 
     def forwardChecking(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]], variable: Optional[Variable] = None) -> Dict[Variable, Set[Value]]:
         """ Implement the forward checking algorithm from the theory lectures.
@@ -128,20 +133,17 @@ class CSP(ABC):
         :return: the new domains after enforcing all constraints.
         """
         # TODO mooiere manier vinden voor als var niet none is
-        new_domains = domains.copy()
+        new_domains = dict(domains)
         if variable is None: variables_to_check = self.variables
         else: variables_to_check = [variable]
         for var in variables_to_check:
             for neighbor in self.neighbors(var):
-                if assignment.get(var) is None or assignment.get(neighbor) is not None:
-                    continue
-                temp_assignment = dict(assignment)
-                valid_values = []
-                for neighbor_value in domains.get(neighbor):
-                    temp_assignment[neighbor] = neighbor_value
-                    if self.isValid(temp_assignment):
-                        valid_values.append(neighbor_value)
-                new_domains[neighbor] = set(valid_values)
+                if assignment.get(var) is not None:
+                    valid_values = []
+                    for neighbor_value in domains.get(neighbor):
+                        if self.isValidPairwise(var, assignment.get(var), neighbor, neighbor_value):
+                            valid_values.append(neighbor_value)
+                    new_domains[neighbor] = set(valid_values)
         return new_domains
 
     def selectVariable(self, assignment: Dict[Variable, Value], domains: Dict[Variable, Set[Value]]) -> Variable:
