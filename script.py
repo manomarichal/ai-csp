@@ -1,12 +1,12 @@
 import os
 import numpy
 import matplotlib.pyplot as plt
-index = 5
-count = 5
+index = 1
+count = 20
 output_file = open("/home/mano/PycharmProjects/csp/results.txt", "w")
 
-commands = ["python3 solver.py queens --n 10",
-            "python3 solver.py queens --method fc --n 10",
+commands = ["python3 solver.py queens --n 20",
+            "python3 solver.py queens --method fc --n 20",
             "python3 solver.py queens --method fc --n 30",
             "python3 solver.py queens --method fc --n 50",
             "python3 solver.py queens --method ac3 --n 30",
